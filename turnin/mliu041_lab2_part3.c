@@ -8,6 +8,7 @@
  *	code, is my own original work.
  */
 #include <avr/io.h>
+#include <stdlib.h>
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
@@ -15,18 +16,28 @@
 int main(void) {
     /* Insert DDR and PORT initializations */
     DDRA = 0x00; PORTA = 0xff;
-    DDRB = 0xff; PORTB = 0x00;
+    DDRB = 0x00; PORTB = 0xff;
+    DDRC = 0x00; PORTC = 0xff;
+    DDRD = 0xff; PORTD = 0x00;
 
     /* Insert your solution below */
     
-    unsigned char t_in = 0x00;
-    unsigned char cntavail;
+    uint8_t a_in, b_in, c_in, d_out;
+    uint16_t gross;
+    uint8_t diff;
     while (1) {
-        t_in = PINA;
-	
-	cntavail = (t_in & 1) + ((t_in & 2) >> 1) + ((t_in & 4) >> 2) + ((t_in & 8) >> 3);
-	cntavail |= (cntavail & 0x04) << 5; 
-	PORTC ^= (PORTC & 0x8f) ^ cntavail;
+        a_in = PINA;
+        b_in = PINB;
+	c_in = PINC;
+	d_out = 0x00;
+	gross = ((uint16_t) a_in) + b_in + c_in;
+	if (gross > 140) d_out = 0x01;
+	diff = abs(((int16_t)a_in) - c_in);
+	if (diff > 80) d_out |= 0x02;
+	if (gross > 252) d_out |= 0xfc;
+	else d_out |= (gross & 0xfc);
+
+	PORTD = d_out;;
     }
     
     return 1;
